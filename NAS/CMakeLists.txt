@@ -2,11 +2,10 @@
 # project specific logic here.
 #
 
-# Add source to this project's executable.
-add_executable (NAS "NAS.cpp" "NAS.h")
+# Create the subproject library
+add_library(nas_lib NAS.cpp NAS.h)
 
-if (CMAKE_VERSION VERSION_GREATER 3.12)
-  set_property(TARGET NAS PROPERTY CXX_STANDARD 20)
-endif()
+# Set include directories for the subproject
+target_include_directories(nas_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # TODO: Add tests and install targets if needed.

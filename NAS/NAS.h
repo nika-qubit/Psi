@@ -3,6 +3,14 @@
 
 #pragma once
 
-#include <iostream>
+#include <string>
+#include <vector>
 
-// TODO: Reference additional headers your program requires here.
+namespace nika::nas {
+
+class NAS {
+ public:
+  std::vector<std::string> ListMountedDevices();
+};
+
+}  // namespace nika::nas

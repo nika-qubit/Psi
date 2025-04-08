@@ -1,12 +1,14 @@
-﻿// NAS.cpp : Defines the entry point for the application.
-//
+﻿#include "NAS.h"
 
-#include "NAS.h"
+#include <string>
+#include <vector>
 
-using namespace std;
+namespace nika::nas {
 
-int main()
-{
-	cout << "Hello CMake." << endl;
-	return 0;
+std::vector<std::string> NAS::ListMountedDevices() {
+  return {"test_a", "test_b"};
 }
+
+
+}  // namespace nika::nas
+
