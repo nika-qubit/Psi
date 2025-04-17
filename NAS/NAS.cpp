@@ -20,7 +20,6 @@ std::vector<std::string> NAS::ListMountedDevices() {
   }
   return mounted_devices;
 }
-                                        jajaah
 
 }  // namespace nika::nas
 
