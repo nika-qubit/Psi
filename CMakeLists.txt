@@ -19,7 +19,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(absl)
 
-target_link_libraries(Psi absl::strings nas_lib)
+target_link_libraries(
+  Psi nas_lib
+  absl::strings
+  absl::log
+  absl::log_initialize
+)
 
 target_include_directories(Psi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/NAS)
 
