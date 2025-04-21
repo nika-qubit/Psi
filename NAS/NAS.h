@@ -9,8 +9,11 @@
 namespace nika::nas {
 
 class NAS {
- public:
-  std::vector<std::string> ListMountedDevices();
+public:
+  virtual std::vector<std::string> ListMountedDevices() const = 0;
+
+  NAS() = default;
+  virtual ~NAS() = default;
 };
 
 }  // namespace nika::nas

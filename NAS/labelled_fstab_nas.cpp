@@ -4,10 +4,11 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include "labelled_fstab_nas.h"
 
 namespace nika::nas {
 
-std::vector<std::string> NAS::ListMountedDevices() {
+std::vector<std::string> FstabNAS::ListMountedDevices() const {
   std::ifstream mounts_file("/etc/fstab");
   
   if (!mounts_file.is_open()) {

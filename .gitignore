@@ -400,7 +400,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 # Visual Studio cmake
-CMakePresets.json
 out/
 
 # CMake
