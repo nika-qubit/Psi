@@ -7,20 +7,13 @@ project ("Psi")
 
 # Include sub-projects.
 add_subdirectory (NAS)
+add_subdirectory (third_party)
 
 add_executable(Psi main.cpp) 
 
-# Import Abseil's CMake target.
-include(FetchContent)
-FetchContent_Declare(
-  absl 
-  GIT_REPOSITORY https://github.com/abseil/abseil-cpp.git
-  GIT_TAG        20250127.1
-)
-FetchContent_MakeAvailable(absl)
-
 target_link_libraries(
-  Psi nas_lib
+  Psi
+  nas_lib
   absl::strings
   absl::log
   absl::log_initialize

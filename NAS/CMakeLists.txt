@@ -4,9 +4,16 @@
 
 # Create the subproject library
 add_library(
-  nas_lib NAS.h
+  nas_lib
+  NAS.h
   fs_nas.cpp fs_nas.h
   labelled_fstab_nas.cpp labelled_fstab_nas.h
+)
+
+target_link_libraries(
+  nas_lib
+  absl::strings
+  absl::log
 )
 
 # Set include directories for the subproject

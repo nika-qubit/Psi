@@ -4,7 +4,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include "labelled_fstab_nas.h"
 
 namespace nika::nas {
 
