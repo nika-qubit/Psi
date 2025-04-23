@@ -5,6 +5,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include "absl/log/log.h"
 #include "re2/re2.h"
@@ -16,6 +17,7 @@ namespace {
 namespace fs = std::filesystem;
 
 constexpr absl::string_view kRootDir = "/media";
+constexpr absl::string_view kSambaPath = "/nas/public";
 constexpr LazyRE2 kYearDirMatcher = {R"re(^[0-9]{4})re" };
 constexpr LazyRE2 kMonthDirMatcher = {R"re(^[0|1][0-9])re"};
 
@@ -25,7 +27,7 @@ std::vector<std::string> FsNAS::ListMountedDevices() const {
   std::vector<std::string> devices;
   for (const auto& entry : fs::directory_iterator(kRootDir)) {
     if (fs::is_directory(entry)) {
-      devices.push_back(entry.path());
+      devices.push_back(absl::StrCat(entry.path().string(), kSambaPath));
     } else if (fs::is_regular_file(entry)) {
       LOG(INFO) << "Skipping regular file: " << entry.path();
     }
