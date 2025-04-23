@@ -17,6 +17,7 @@ target_link_libraries(
   absl::strings
   absl::log
   absl::log_initialize
+  re2
 )
 
 target_include_directories(Psi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/NAS)

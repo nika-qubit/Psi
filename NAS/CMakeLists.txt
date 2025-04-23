@@ -14,6 +14,7 @@ target_link_libraries(
   nas_lib
   absl::strings
   absl::log
+  re2
 )
 
 # Set include directories for the subproject

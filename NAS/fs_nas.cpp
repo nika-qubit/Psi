@@ -1,9 +1,13 @@
 #include "fs_nas.h"
 
+#include <utility>
 #include <filesystem>
 
+#include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/strings/string_view.h"
 #include "absl/log/log.h"
+#include "re2/re2.h"
 
 namespace nika::nas {
 
@@ -12,6 +16,8 @@ namespace {
 namespace fs = std::filesystem;
 
 constexpr absl::string_view kRootDir = "/media";
+constexpr LazyRE2 kYearDirMatcher = {R"re(^[0-9]{4})re" };
+constexpr LazyRE2 kMonthDirMatcher = {R"re(^[0|1][0-9])re"};
 
 }  // namespace
 
@@ -27,8 +33,84 @@ std::vector<std::string> FsNAS::ListMountedDevices() const {
   return devices;
 }
 
-std::vector<std::string> FsNAS::CompactDevices() const {
-  return {"ok"};
+std::vector<std::string> FsNAS::CompactDevices() {
+  std::vector<std::string> mounted_devices = ListMountedDevices();
+  // Dir layers: root --> year --> month --> plain file or event dir.
+  std::vector<std::string> compact_found;
+  for (const auto& device : mounted_devices) {
+    std::vector<std::string> found = CompactDevice(device);
+    compact_found.insert(compact_found.end(), found.begin(), found.end());
+  }
+  return compact_found;
+}
+
+std::vector<std::string> FsNAS::CompactDevice(absl::string_view device) {
+  LOG(INFO) << "Device: " << device;
+  std::vector<std::string> device_found;
+  for (const auto& entry : fs::directory_iterator(device)) {
+    LOG(INFO) << entry.path().stem();
+    if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kYearDirMatcher)) {
+      std::vector<std::string> found = CompactYear(entry.path().string());
+      device_found.insert(device_found.end(), found.begin(), found.end());
+    }
+  }
+  LOG(INFO) << "End Device: " << device;
+  return device_found;
+}
+
+std::vector<std::string> FsNAS::CompactYear(absl::string_view year) {
+  LOG(INFO) << "Year: " << year;
+  std::vector<std::string> year_found;
+  for (const auto& entry: fs::directory_iterator(year)) {
+    LOG(INFO) << entry.path().stem();
+    if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kMonthDirMatcher)) {
+      std::vector<std::string> found = CompactMonth(entry.path().string());
+      year_found.insert(year_found.end(), found.begin(), found.end());
+    }
+  }
+  LOG(INFO) << "End Year: " << year;
+  return year_found;
+}
+
+std::vector<std::string> FsNAS::CompactMonth(absl::string_view month) {
+  LOG(INFO) << "Month: " << month;
+  std::vector<std::string> month_found;
+  absl::flat_hash_set<std::string> seen;
+  absl::flat_hash_map<std::string, std::string> seen_map;
+  std::vector<std::string> events;
+  for (const auto& entry: fs::directory_iterator(month)) {
+    if (fs::is_directory(entry)) {  // event
+      events.push_back(entry.path());
+    }
+  }
+  for (const auto& event: events) {
+    for (const auto& entry: fs::directory_iterator(event)) {
+      if (fs::is_regular_file(entry)) {
+        std::string filename = entry.path().filename().string();
+        LOG(INFO) << "Seen " << filename << " at " << entry.path();
+        if (!seen.insert(filename).second) {
+          LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];
+          month_found.push_back(entry.path());
+        } else {
+          seen_map[filename] = entry.path().string();
+        }
+      }
+    }
+  }
+  for (const auto& entry : fs::directory_iterator(month)) {
+    if (fs::is_regular_file(entry)) {  // plain files
+      std::string filename = entry.path().filename().string();
+      LOG(INFO) << "Seen " << filename << " at " << entry.path();
+      if (!seen.insert(filename).second) {
+        LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];
+        month_found.push_back(entry.path());
+      } else {
+        seen_map[filename] = entry.path().string();
+      }
+    }
+  }
+  LOG(INFO) << "End Month: " << month;
+  return month_found;
 }
 
 }  // namespace nika::nas

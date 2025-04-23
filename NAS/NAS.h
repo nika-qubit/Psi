@@ -11,7 +11,7 @@ namespace nika::nas {
 class NAS {
 public:
   virtual std::vector<std::string> ListMountedDevices() const = 0;
-  virtual std::vector<std::string> CompactDevices() const { return {"Not implemented."}; }
+  virtual std::vector<std::string> CompactDevices() { return {"Not implemented."}; }
 
   NAS() = default;
   virtual ~NAS() = default;
