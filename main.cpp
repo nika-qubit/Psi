@@ -22,9 +22,8 @@ int main() {
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
   std::unique_ptr<NAS> fs_nas = std::make_unique<FsNAS>();
-  std::unique_ptr<NAS> label_nas = std::make_unique<FstabNAS>();
   LOG(INFO) << "Fs Devices: " << endl << absl::StrJoin(fs_nas->ListMountedDevices(), "\n") << endl;
-  LOG(INFO) << "Labelled Devices: " << endl << absl::StrJoin(label_nas->ListMountedDevices(), "\n") << endl;
+  LOG(INFO) << "Compact Devices: " << endl << absl::StrJoin(fs_nas->CompactDevices(), "\n") << endl;
   return 0;
 }
 

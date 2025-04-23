@@ -27,4 +27,8 @@ std::vector<std::string> FsNAS::ListMountedDevices() const {
   return devices;
 }
 
+std::vector<std::string> FsNAS::CompactDevices() const {
+  return {"ok"};
+}
+
 }  // namespace nika::nas
