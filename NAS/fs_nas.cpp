@@ -53,7 +53,7 @@ void RecordInManifest(std::string manifest_path, const MovedFile& moved) {
 std::string BuildManifestPath(absl::string_view enclosing_dir) {
   absl::TimeZone pst = absl::FixedTimeZone(-8 * 60 * 60);
   return absl::StrCat(
-      enclosing_dir, absl::Base64Escape(
+      enclosing_dir, "/", absl::Base64Escape(
         absl::FormatTime("YYYY-MM-DD hh:mm:ss", absl::Now(), pst)));
 }
 

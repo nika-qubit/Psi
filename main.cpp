@@ -20,7 +20,7 @@ using nika::nas::FstabNAS;
 
 int main() {
   absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
+  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kWarning);
   std::unique_ptr<NAS> fs_nas = std::make_unique<FsNAS>();
   LOG(INFO) << "Fs Devices: " << endl << absl::StrJoin(fs_nas->ListMountedDevices(), "\n") << endl;
   LOG(INFO) << "Compact Devices: " << endl << absl::StrJoin(fs_nas->CompactDevices(), "\n") << endl;
