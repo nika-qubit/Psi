@@ -41,7 +41,7 @@ void RecordInManifest(std::string manifest_path, const MovedFile& moved) {
   if (
       (!manifests.contains(manifest_path)) ||
       (!manifests[manifest_path].is_open())) {
-    manifests[manifest_path] = ofs{manifest_path};
+    manifests[manifest_path] = ofs{manifest_path, std::ios::app};
   }
   auto& manifest = manifests[manifest_path];
   if (manifest.is_open()) {
@@ -58,10 +58,15 @@ void FlushAndCloseManifest(std::string manifest_path) {
 
 
 std::string BuildCompactionPath(absl::string_view enclosing_dir) {
-  absl::TimeZone pst = absl::FixedTimeZone(-8 * 60 * 60);
-  return absl::StrCat(
+  std::string compaction_path = absl::StrCat(
       enclosing_dir, "/compaction-", absl::Base64Escape(
-        absl::FormatTime("YYYY-MM-DD hh:mm:ss", absl::Now(), pst)));
+        absl::FormatTime("%Y-%m-%d %H:%M:%S", absl::Now(), absl::LocalTimeZone())));
+  try {
+    fs::create_directory(compaction_path);
+  } catch (fs::filesystem_error const& ex) {
+    LOG(ERROR) << "Failed to create compaction path " << compaction_path << ", code: " << ex.code().message();
+  }
+  return compaction_path;
 }
 
 void MoveFileToCompaction(const MovedFile& moved, std::string compaction_path) {
