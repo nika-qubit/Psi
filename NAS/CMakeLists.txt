@@ -14,6 +14,7 @@ target_link_libraries(
   nas_lib
   absl::strings
   absl::log
+  absl::time
   re2
 )
 
