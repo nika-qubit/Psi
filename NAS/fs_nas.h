@@ -16,8 +16,8 @@ public:
 
 private:
   std::vector<std::string> CompactDevice(absl::string_view device);
-  std::vector<std::string> CompactYear(absl::string_view year, std::string manifest_path);
-  std::vector<std::string> CompactMonth(absl::string_view month, std::string manifest_path);
+  std::vector<std::string> CompactYear(absl::string_view year, std::string compaction_path);
+  std::vector<std::string> CompactMonth(absl::string_view month, std::string compaction_path);
 };
 
 }  // namespace nika::nas

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <utility>
 #include <filesystem>
+#include <system_error>
 #include <fstream>
 
 #include "absl/container/flat_hash_map.h"
@@ -50,13 +51,26 @@ void RecordInManifest(std::string manifest_path, const MovedFile& moved) {
   }
 }
 
-std::string BuildManifestPath(absl::string_view enclosing_dir) {
+void FlushAndCloseManifest(std::string manifest_path) {
+  manifests[manifest_path].flush();
+  manifests[manifest_path].close();
+}
+
+
+std::string BuildCompactionPath(absl::string_view enclosing_dir) {
   absl::TimeZone pst = absl::FixedTimeZone(-8 * 60 * 60);
   return absl::StrCat(
-      enclosing_dir, "/", absl::Base64Escape(
+      enclosing_dir, "/compaction-", absl::Base64Escape(
         absl::FormatTime("YYYY-MM-DD hh:mm:ss", absl::Now(), pst)));
 }
 
+void MoveFileToCompaction(const MovedFile& moved, std::string compaction_path) {
+  try {
+    fs::rename(moved.file_path, absl::StrCat(compaction_path, "/", absl::ToUnixMicros(absl::Now()), moved.filename));
+  } catch (fs::filesystem_error const& ex) {
+    LOG(ERROR) << "Failed to compact duplicated file" << moved.file_path << ", code: " << ex.code().message();
+  }
+}
 
 }  // namespace
 
@@ -89,7 +103,7 @@ std::vector<std::string> FsNAS::CompactDevice(absl::string_view device) {
   for (const auto& entry : fs::directory_iterator(device)) {
     LOG(INFO) << entry.path().stem();
     if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kYearDirMatcher)) {
-      std::vector<std::string> found = CompactYear(entry.path().string(), BuildManifestPath(device));
+      std::vector<std::string> found = CompactYear(entry.path().string(), BuildCompactionPath(device));
       device_found.insert(device_found.end(), found.begin(), found.end());
     }
   }
@@ -97,13 +111,13 @@ std::vector<std::string> FsNAS::CompactDevice(absl::string_view device) {
   return device_found;
 }
 
-std::vector<std::string> FsNAS::CompactYear(absl::string_view year, std::string manifest_path) {
+std::vector<std::string> FsNAS::CompactYear(absl::string_view year, std::string compaction_path) {
   LOG(INFO) << "Year: " << year;
   std::vector<std::string> year_found;
   for (const auto& entry: fs::directory_iterator(year)) {
     LOG(INFO) << entry.path().stem();
     if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kMonthDirMatcher)) {
-      std::vector<std::string> found = CompactMonth(entry.path().string(), manifest_path);
+      std::vector<std::string> found = CompactMonth(entry.path().string(), compaction_path);
       year_found.insert(year_found.end(), found.begin(), found.end());
     }
   }
@@ -111,12 +125,13 @@ std::vector<std::string> FsNAS::CompactYear(absl::string_view year, std::string 
   return year_found;
 }
 
-std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::string manifest_path) {
+std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::string compaction_path) {
   LOG(INFO) << "Month: " << month;
   std::vector<std::string> month_found;
   absl::flat_hash_set<std::string> seen;
   absl::flat_hash_map<std::string, std::string> seen_map;
   std::vector<std::string> events;
+  std::string manifest_path = absl::StrCat(compaction_path, "/manifest.csv");
   for (const auto& entry: fs::directory_iterator(month)) {
     if (fs::is_directory(entry)) {  // event
       events.push_back(entry.path());
@@ -128,8 +143,10 @@ std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::strin
         std::string filename = entry.path().filename().string();
         LOG(INFO) << "Seen " << filename << " at " << entry.path();
         if (!seen.insert(filename).second) {
+          MovedFile moved = {filename, entry.path().string(), seen_map[filename]};
           LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];
-          RecordInManifest(manifest_path, {filename, entry.path().string(), seen_map[filename]});
+          RecordInManifest(manifest_path, moved);
+          MoveFileToCompaction(moved, compaction_path);
           month_found.push_back(entry.path());
         } else {
           seen_map[filename] = entry.path().string();
@@ -142,14 +159,17 @@ std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::strin
       std::string filename = entry.path().filename().string();
       LOG(INFO) << "Seen " << filename << " at " << entry.path();
       if (!seen.insert(filename).second) {
+        MovedFile moved = {filename, entry.path().string(), seen_map[filename]};
         LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];
-        RecordInManifest(manifest_path, {filename, entry.path().string(), seen_map[filename]});
+        RecordInManifest(manifest_path, moved);
+        MoveFileToCompaction(moved, compaction_path);
         month_found.push_back(entry.path());
       } else {
         seen_map[filename] = entry.path().string();
       }
     }
   }
+  FlushAndCloseManifest(manifest_path);
   LOG(INFO) << "End Month: " << month;
   return month_found;
 }
