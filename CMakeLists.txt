@@ -8,21 +8,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 project ("Psi")
 
 # Include sub-projects.
+add_subdirectory (third_party)
 add_subdirectory (NAS)
 add_subdirectory (exif)
-add_subdirectory (third_party)
 
-add_executable(Psi main.cpp) 
+add_executable(Psi main.cpp)
 
 target_link_libraries(
   Psi
+  Exiv2::exiv2lib
   nas_lib
   exif_lib
   absl::strings
   absl::log
   absl::log_initialize
   re2
-  Exiv2::exiv2lib
   nlohmann_json::nlohmann_json
 )
 

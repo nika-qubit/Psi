@@ -30,5 +30,15 @@ FetchContent_MakeAvailable(
 
 # Exiv2 setup for Linux.
 # sudo apt install --yes build-essential ccache clang cmake git google-mock libbrotli-dev libcurl4-openssl-dev libexpat1-dev libgtest-dev libinih-dev libssh-dev libxml2-utils libz-dev python3 zlib1g-dev
-# Install it manually following: https://github.com/Exiv2/exiv2?tab=readme-ov-file#build-install-use-exiv2-on-a-unix-like-system.
-# TODO: figure out how to set exiv2 up automatically.
+# Install it manually following:
+# https://github.com/Exiv2/exiv2?tab=readme-ov-file#build-install-use-exiv2-on-a-unix-like-system.
+# Below automated the process. But it has to be executed with sudo cmake and the first-time build will fail because source code is being generated after the build starts.
+add_custom_target(PreInstallExiv2
+  cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+  COMMAND cmake --build build
+  COMMAND sudo cmake --install build
+  WORKING_DIRECTORY ${exiv2_SOURCE_DIR}
+)
+add_custom_target(ExportExifHeader
+  ALL DEPENDS PreInstallExiv2
+)

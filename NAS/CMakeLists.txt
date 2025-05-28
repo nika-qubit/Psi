@@ -21,4 +21,3 @@ target_link_libraries(
 # Set include directories for the subproject
 target_include_directories(nas_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-# TODO: Add tests and install targets if needed.
