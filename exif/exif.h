@@ -1,24 +1,31 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 
+#include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include <nlohmann/json.hpp>
 
 namespace nika::nas {
 
-// Relavent Exiv2::ExifData
-// Exif.Photo.DateTimeOriginal                  0x9003 Ascii      20  2025:04:01 17:05:14
-// Exif.GPSInfo.GPSLatitudeRef                  0x0001 Ascii       2  N
-// Exif.GPSInfo.GPSLatitude                     0x0002 Rational    3  47/1 42/1 1133/100
-// Exif.GPSInfo.GPSLongitudeRef                 0x0003 Ascii       2  W
-// Exif.GPSInfo.GPSLongitude                    0x0004 Rational    3  122/1 7/1 4141/100
-// Exif.GPSInfo.GPSAltitudeRef                  0x0005 Byte        1  0
-// Exif.GPSInfo.GPSAltitude                     0x0006 Rational    1  5359/100
+struct Metadata {
+  absl::Time original_date_time;
+  std::string unparsed_date;
+};
 
+inline std::ostream& operator<<(std::ostream& os, const Metadata& val) {
+  os << "original_date_time: "
+      << absl::FormatTime(
+          absl::RFC3339_full, val.original_date_time, absl::LocalTimeZone())
+      << ", unparsed_date: " << val.unparsed_date << std::endl;
+  return os;
+}
 
 class Exif {
 public:
-  nlohmann::json read(std::string file) const;
+  nlohmann::json Read(absl::string_view file) const;
+  Metadata Distill(nlohmann::json& json_metadata) const;
 };
 
 }  // namespace nika::nas
