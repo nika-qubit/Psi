@@ -56,7 +56,6 @@ void FlushAndCloseManifest(std::string manifest_path) {
   manifests[manifest_path].close();
 }
 
-
 std::string BuildCompactionPath(absl::string_view enclosing_dir) {
   std::string compaction_path = absl::StrCat(
       enclosing_dir, "/compaction-", absl::Base64Escape(
@@ -78,6 +77,10 @@ void MoveFileToCompaction(const MovedFile& moved, std::string compaction_path) {
 }
 
 }  // namespace
+
+void FsNAS::Do() {
+  CompactDevices();
+}
 
 std::vector<std::string> FsNAS::ListMountedDevices() const {
   std::vector<std::string> devices;

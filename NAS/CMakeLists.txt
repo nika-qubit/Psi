@@ -8,6 +8,7 @@ add_library(
   NAS.h
   fs_nas.cpp fs_nas.h
   labelled_fstab_nas.cpp labelled_fstab_nas.h
+  task_executor.cpp task_executor.h
 )
 
 target_link_libraries(

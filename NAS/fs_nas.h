@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NAS.h"
+#include "task_executor.h"
 
 #include <string>
 #include <vector>
@@ -9,8 +10,9 @@
 
 namespace nika::nas {
 
-class FsNAS final : public NAS {
+class FsNAS final : public NAS, public MutexTask {
 public:
+  void Do() override;
   std::vector<std::string> ListMountedDevices() const override;
   std::vector<std::string> CompactDevices() override;
 
