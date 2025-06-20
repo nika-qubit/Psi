@@ -6,6 +6,7 @@
 add_library(
   nas_lib
   NAS.h
+  assorter.cpp assorter.h
   fs_nas.cpp fs_nas.h
   labelled_fstab_nas.cpp labelled_fstab_nas.h
   task_executor.cpp task_executor.h
@@ -16,6 +17,7 @@ target_link_libraries(
   absl::strings
   absl::log
   absl::time
+  exif_lib
   re2
 )
 
