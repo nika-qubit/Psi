@@ -6,6 +6,8 @@
 #include <system_error>
 #include <fstream>
 
+#include "conf.h"
+
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/strings/str_cat.h"
@@ -13,7 +15,6 @@
 #include "absl/log/log.h"
 #include "absl/time/time.h"
 #include "absl/strings/escaping.h"
-#include "re2/re2.h"
 
 namespace nika::nas {
 
@@ -25,10 +26,6 @@ using ifs = std::ifstream;
 
 namespace fs = std::filesystem;
 
-constexpr absl::string_view kRootDir = "/media";
-constexpr absl::string_view kSambaPath = "/nas/public";
-constexpr LazyRE2 kYearDirMatcher = {R"re(^[0-9]{4})re" };
-constexpr LazyRE2 kMonthDirMatcher = {R"re(^[0|1][0-9])re"};
 absl::flat_hash_map<std::string, ofs> manifests;
 
 struct MovedFile {

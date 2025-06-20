@@ -6,6 +6,7 @@
 add_library(
   nas_lib
   NAS.h
+  conf.h
   assorter.cpp assorter.h
   fs_nas.cpp fs_nas.h
   labelled_fstab_nas.cpp labelled_fstab_nas.h

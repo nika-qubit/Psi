@@ -32,11 +32,15 @@ using nlohmann::json;
 constexpr absl::string_view kDateTimeOriginal = "Exif.Photo.DateTimeOriginal";
 constexpr absl::string_view kOffsetTimeOriginal = "Exif.Photo.OffsetTimeOriginal";
 constexpr absl::string_view kDateTimeWithOffsetFormat = "%Y:%m:%d %H:%M:%S%Ez";
+constexpr absl::string_view kDateTimeWithOffsetFormat2 = "%Y-%m-%d %H:%M:%S%Ez";
 
 }  // namespace
 
 Metadata Exif::Distill(json& json_metadata) const {
   Metadata metadata;
+  if (!json_metadata.contains(kDateTimeOriginal) || !json_metadata.contains(kOffsetTimeOriginal)) {
+    return metadata;
+  }
   std::string date_time_with_offset = absl::StrCat(
       json_metadata[kDateTimeOriginal].template get<std::string>(),
       json_metadata[kOffsetTimeOriginal].template get<std::string>());
@@ -44,8 +48,11 @@ Metadata Exif::Distill(json& json_metadata) const {
   metadata.unparsed_date = date_time_with_offset.substr(0, 10);
   absl::Time date_time;
   std::string error;
-  if (absl::ParseTime(kDateTimeWithOffsetFormat, date_time_with_offset, &date_time, &error)) {
+  if (
+    absl::ParseTime(kDateTimeWithOffsetFormat, date_time_with_offset, &date_time, &error)
+    || absl::ParseTime(kDateTimeWithOffsetFormat2, date_time_with_offset, &date_time, &error)) {
     metadata.original_date_time = date_time;
+    metadata.is_comprehensive = true;
   } else {
     LOG(ERROR) << "Error parsing " << date_time_with_offset << " error: " << error;
   }
