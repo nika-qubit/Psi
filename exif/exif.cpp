@@ -6,8 +6,10 @@
 
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_format.h"
 #include "absl/strings/string_view.h"
 #include "absl/strings/substitute.h"
+#include "absl/time/civil_time.h"
 #include "absl/time/time.h"
 #include <exiv2/exiv2.hpp>
 #include <nlohmann/json.hpp>
@@ -52,6 +54,10 @@ Metadata Exif::Distill(json& json_metadata) const {
     absl::ParseTime(kDateTimeWithOffsetFormat, date_time_with_offset, &date_time, &error)
     || absl::ParseTime(kDateTimeWithOffsetFormat2, date_time_with_offset, &date_time, &error)) {
     metadata.original_date_time = date_time;
+    const absl::CivilDay civil_day = absl::ToCivilDay(
+        metadata.original_date_time, absl::LocalTimeZone());
+    metadata.year = absl::StrCat(civil_day.year());
+    metadata.month = absl::StrFormat("%02d", civil_day.month());
     metadata.is_comprehensive = true;
   } else {
     LOG(ERROR) << "Error parsing " << date_time_with_offset << " error: " << error;
