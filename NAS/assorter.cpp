@@ -8,6 +8,7 @@
 #include "exif.h"
 
 #include "absl/log/log.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/string_view.h"
 #include <nlohmann/json.hpp>
 
@@ -28,7 +29,7 @@ void MoveFile(absl::string_view file, const Metadata& metadata) {
 }  // namespace
 
 void Assorter::Do() {
-  RelocateStaging(kStaging);
+  RelocateStaging(absl::StrCat(kRootDir, "/wonder_land", kSambaPath, kStaging));
 }
 
 void Assorter::RelocateStaging(absl::string_view staging_location) {
