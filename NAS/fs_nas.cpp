@@ -57,6 +57,7 @@ std::string BuildCompactionPath(MountedDevice device) {
   std::string compaction_path = absl::StrCat(
       device.mount_path, "/compaction-", device.device_name, absl::Base64Escape(
         absl::FormatTime("%Y-%m-%d %H:%M:%S", absl::Now(), absl::LocalTimeZone())));
+  compaction_path = compaction_path.substr(0, compaction_path.length() - 2);
   try {
     fs::create_directory(compaction_path);
   } catch (fs::filesystem_error const& ex) {
