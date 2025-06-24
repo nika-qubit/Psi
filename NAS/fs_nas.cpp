@@ -53,9 +53,9 @@ void FlushAndCloseManifest(std::string manifest_path) {
   manifests[manifest_path].close();
 }
 
-std::string BuildCompactionPath(absl::string_view enclosing_dir) {
+std::string BuildCompactionPath(MountedDevice device) {
   std::string compaction_path = absl::StrCat(
-      enclosing_dir, "/compaction-", absl::Base64Escape(
+      device.mount_path, "/compaction-", device.device_name, absl::Base64Escape(
         absl::FormatTime("%Y-%m-%d %H:%M:%S", absl::Now(), absl::LocalTimeZone())));
   try {
     fs::create_directory(compaction_path);
@@ -79,11 +79,14 @@ void FsNAS::Do() {
   CompactDevices();
 }
 
-std::vector<std::string> FsNAS::ListMountedDevices() const {
-  std::vector<std::string> devices;
+std::vector<MountedDevice> FsNAS::ListMountedDevices() const {
+  std::vector<MountedDevice> devices;
   for (const auto& entry : fs::directory_iterator(kRootDir)) {
     if (fs::is_directory(entry)) {
-      devices.push_back(absl::StrCat(entry.path().string(), kSambaPath));
+      devices.push_back({
+        .device_name = entry.path().stem().string(),
+        .mount_path = absl::StrCat(entry.path().string(), kSambaPath)
+      });
     } else if (fs::is_regular_file(entry)) {
       LOG(INFO) << "Skipping regular file: " << entry.path();
     }
@@ -92,7 +95,7 @@ std::vector<std::string> FsNAS::ListMountedDevices() const {
 }
 
 std::vector<std::string> FsNAS::CompactDevices() {
-  std::vector<std::string> mounted_devices = ListMountedDevices();
+  std::vector<MountedDevice> mounted_devices = ListMountedDevices();
   // Dir layers: root --> year --> month --> plain file or event dir.
   std::vector<std::string> compact_found;
   for (const auto& device : mounted_devices) {
@@ -102,10 +105,10 @@ std::vector<std::string> FsNAS::CompactDevices() {
   return compact_found;
 }
 
-std::vector<std::string> FsNAS::CompactDevice(absl::string_view device) {
-  LOG(INFO) << "Device: " << device;
+std::vector<std::string> FsNAS::CompactDevice(const MountedDevice& device) {
+  LOG(INFO) << "Device: " << device.device_name << ", path: " << device.mount_path;
   std::vector<std::string> device_found;
-  for (const auto& entry : fs::directory_iterator(device)) {
+  for (const auto& entry : fs::directory_iterator(device.mount_path)) {
     LOG(INFO) << entry.path().stem();
     if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kYearDirMatcher)) {
       std::vector<std::string> found = CompactYear(entry.path().string(), BuildCompactionPath(device));

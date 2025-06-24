@@ -17,7 +17,7 @@ struct Metadata {
 
 inline std::ostream& operator<<(std::ostream& os, const Metadata& val) {
   os << "is_comprehensive: " << val.is_comprehensive
-      << "original_date_time: "
+      << " original_date_time: "
       << absl::FormatTime(
           absl::RFC3339_full, val.original_date_time, absl::LocalTimeZone())
       << ", unparsed_date: " << val.unparsed_date << std::endl;

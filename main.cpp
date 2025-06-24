@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   executor.Append(std::move(fs_nas));
   executor.Append(std::move(assorter));
   executor.Start();
-  Exif exif;
+  // Exif exif;
   // auto json_metadata = exif.Read(
   //     // "/media/wonder_land/nas/public/2025/01/PXL_20250101_200924840.jpg"
   //     //   "/home/nika/workspace/PXL_20250102_200924840.jpg"

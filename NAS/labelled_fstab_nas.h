@@ -9,7 +9,7 @@ namespace nika::nas {
 
 class FstabNAS final : public NAS {
 public:
-	std::vector<std::string> ListMountedDevices() const override;
+	std::vector<MountedDevice> ListMountedDevices() const override;
 };
 
 }  // namespace nika::nas
