@@ -65,6 +65,10 @@ std::string BuildCompactionPath(MountedDevice device) {
   return compaction_path;
 }
 
+std::string BuildManifestPath(absl::string_view compaction_path) {
+  return absl::StrCat(compaction_path, "/manifest.csv");
+}
+
 void MoveFileToCompaction(const MovedFile& moved, std::string compaction_path) {
   try {
     fs::rename(moved.file_path, absl::StrCat(compaction_path, "/", absl::ToUnixMicros(absl::Now()), moved.filename));
@@ -107,15 +111,20 @@ std::vector<std::string> FsNAS::CompactDevices() {
 
 std::vector<std::string> FsNAS::CompactDevice(const MountedDevice& device) {
   LOG(INFO) << "Device: " << device.device_name << ", path: " << device.mount_path;
+  std::string compaction_path = BuildCompactionPath(device);
+  // Compactable for the current device.
   std::vector<std::string> device_found;
   for (const auto& entry : fs::directory_iterator(device.mount_path)) {
     LOG(INFO) << entry.path().stem();
     if (fs::is_directory(entry) && RE2::FullMatch(entry.path().stem().string(), *kYearDirMatcher)) {
-      std::vector<std::string> found = CompactYear(entry.path().string(), BuildCompactionPath(device));
+      std::vector<std::string> found = CompactYear(entry.path().string(), compaction_path);
       device_found.insert(device_found.end(), found.begin(), found.end());
     }
   }
   LOG(INFO) << "End Device: " << device;
+  if (device_found.empty()) {
+    fs::remove(compaction_path);
+  }
   return device_found;
 }
 
@@ -139,7 +148,7 @@ std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::strin
   absl::flat_hash_set<std::string> seen;
   absl::flat_hash_map<std::string, std::string> seen_map;
   std::vector<std::string> events;
-  std::string manifest_path = absl::StrCat(compaction_path, "/manifest.csv");
+  std::string manifest_path = BuildManifestPath(compaction_path);
   for (const auto& entry: fs::directory_iterator(month)) {
     if (fs::is_directory(entry)) {  // event
       events.push_back(entry.path());
