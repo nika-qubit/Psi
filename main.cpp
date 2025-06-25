@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "absl/base/log_severity.h"
+#include "absl/strings/string_view.h"
 #include "absl/strings/str_join.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
@@ -21,11 +22,15 @@ using nika::nas::Metadata;
 using nika::nas::MutexTask;
 using nika::nas::NAS;
 using nika::nas::TaskExecutor;
+
+constexpr absl::string_view kModuleExif = "exif";
 }  // namespace
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kWarning);
+  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
+  absl::SetGlobalVLogLevel(1);
+  absl::SetVLogLevel(kModuleExif, 1);
   std::unique_ptr<FsNAS> fs_nas = std::make_unique<FsNAS>();
   std::unique_ptr<Assorter> assorter = std::make_unique<Assorter>();
   TaskExecutor executor;

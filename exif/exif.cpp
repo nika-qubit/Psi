@@ -33,26 +33,35 @@ using nlohmann::json;
 // Exif.GPSInfo.GPSAltitude                     0x0006 Rational    1  5359/100
 constexpr absl::string_view kDateTimeOriginal = "Exif.Photo.DateTimeOriginal";
 constexpr absl::string_view kOffsetTimeOriginal = "Exif.Photo.OffsetTimeOriginal";
+constexpr absl::string_view kDefaultOffsetTime = "-07:00";
 constexpr absl::string_view kDateTimeWithOffsetFormat = "%Y:%m:%d %H:%M:%S%Ez";
 constexpr absl::string_view kDateTimeWithOffsetFormat2 = "%Y-%m-%d %H:%M:%S%Ez";
-
+constexpr absl::string_view kDateTimeWithOffsetFormat3 = "%Y-%m-%dT%H:%M:%S%Ez";
 }  // namespace
 
 Metadata Exif::Distill(json& json_metadata) const {
   Metadata metadata;
-  if (!json_metadata.contains(kDateTimeOriginal) || !json_metadata.contains(kOffsetTimeOriginal)) {
+  if (!json_metadata.contains(kDateTimeOriginal)) {
     return metadata;
   }
-  std::string date_time_with_offset = absl::StrCat(
-      json_metadata[kDateTimeOriginal].template get<std::string>(),
-      json_metadata[kOffsetTimeOriginal].template get<std::string>());
+  std::string date_time_with_offset;
+  if (json_metadata.contains(kOffsetTimeOriginal)) {
+    date_time_with_offset = absl::StrCat(
+        json_metadata[kDateTimeOriginal].template get<std::string>(),
+        json_metadata[kOffsetTimeOriginal].template get<std::string>());
+  } else {
+    date_time_with_offset = absl::StrCat(
+        json_metadata[kDateTimeOriginal].template get<std::string>(),
+        kDefaultOffsetTime);
+  }
   // Substr the Y:m:d part of the unparsed date time.
   metadata.unparsed_date = date_time_with_offset.substr(0, 10);
   absl::Time date_time;
   std::string error;
   if (
     absl::ParseTime(kDateTimeWithOffsetFormat, date_time_with_offset, &date_time, &error)
-    || absl::ParseTime(kDateTimeWithOffsetFormat2, date_time_with_offset, &date_time, &error)) {
+    || absl::ParseTime(kDateTimeWithOffsetFormat2, date_time_with_offset, &date_time, &error)
+    || absl::ParseTime(kDateTimeWithOffsetFormat3, date_time_with_offset, &date_time, &error)) {
     metadata.original_date_time = date_time;
     const absl::CivilDay civil_day = absl::ToCivilDay(
         metadata.original_date_time, absl::LocalTimeZone());

@@ -24,7 +24,7 @@ namespace fs = std::filesystem;
 
 void MoveFile(absl::string_view file, const Metadata& metadata) {
   if (!metadata.is_comprehensive) return;
-  LOG(INFO) << "Moving staging file: " << file << " with metadata: " << metadata;
+  VLOG(1) << "Moving staging file: " << file << " with metadata: " << metadata;
 }
 
 // Utility to check file type.
