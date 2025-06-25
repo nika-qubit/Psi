@@ -25,7 +25,7 @@ using nika::nas::TaskExecutor;
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
+  absl::SetStderrThreshold(absl::LogSeverityAtLeast::kWarning);
   std::unique_ptr<FsNAS> fs_nas = std::make_unique<FsNAS>();
   std::unique_ptr<Assorter> assorter = std::make_unique<Assorter>();
   TaskExecutor executor;

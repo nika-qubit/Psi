@@ -27,6 +27,45 @@ void MoveFile(absl::string_view file, const Metadata& metadata) {
   LOG(INFO) << "Moving staging file: " << file << " with metadata: " << metadata;
 }
 
+// Utility to check file type.
+void FileType(fs::file_type type) {
+  switch (type) {
+    case fs::file_type::none:
+        LOG(WARNING) << " has `not-evaluated-yet` type";
+        break;
+    case fs::file_type::not_found:
+        LOG(WARNING) << " does not exist";
+        break;
+    case fs::file_type::regular:
+        LOG(WARNING) << " is a regular file";
+        break;
+    case fs::file_type::directory:
+        LOG(WARNING) << " is a directory";
+        break;
+    case fs::file_type::symlink:
+        LOG(WARNING) << " is a symlink";
+        break;
+    case fs::file_type::block:
+        LOG(WARNING) << " is a block device";
+        break;
+    case fs::file_type::character:
+        LOG(WARNING) << " is a character device";
+        break;
+    case fs::file_type::fifo:
+        LOG(WARNING) << " is a named IPC pipe";
+        break;
+    case fs::file_type::socket:
+        LOG(WARNING) << " is a named IPC socket";
+        break;
+    case fs::file_type::unknown:
+        LOG(WARNING) << " has `unknown` type";
+        break;
+    default:
+        LOG(WARNING) << " has `implementation-defined` type";
+        break;
+  }
+}
+
 }  // namespace
 
 void Assorter::Do() {
