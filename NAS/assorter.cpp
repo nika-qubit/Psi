@@ -3,6 +3,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <system_error>
 
 #include "conf.h"
 #include "exif.h"
@@ -22,9 +23,15 @@ using ofs = std::ofstream;
 
 namespace fs = std::filesystem;
 
-void MoveFile(absl::string_view file, const Metadata& metadata) {
+void MoveFile(absl::string_view filename, absl::string_view file_path, absl::string_view assort_root, const Metadata& metadata) {
   if (!metadata.is_comprehensive) return;
-  VLOG(1) << "Moving staging file: " << file << " with metadata: " << metadata;
+  std::string dest = absl::StrCat(assort_root, "/", metadata.year, "/", metadata.month, "/", filename);
+  VLOG(1) << "Moving staging file: " << file_path << " to: " << dest;
+  // try {
+  //   fs::rename(file_path, dest);
+  // } catch (fs::filesystem_error const& ex) {
+  //   LOG(ERROR) << "Failed to move staging file: " << file_path << "to: " << dest;
+  // }
 }
 
 // Utility to check file type.
@@ -69,7 +76,7 @@ void FileType(fs::file_type type) {
 }  // namespace
 
 void Assorter::Do() {
-  RelocateStaging(absl::StrCat(kRootDir, "/wonder_land", kSambaPath, kStaging));
+  RelocateStaging(absl::StrCat(assort_root_, kStaging));
 }
 
 void Assorter::RelocateStaging(absl::string_view staging_location) {
@@ -80,7 +87,7 @@ void Assorter::RelocateStaging(absl::string_view staging_location) {
       std::string file_path = entry.path().string();
       json json_meta = exif_.Read(file_path);
       const Metadata metadata = exif_.Distill(json_meta);
-      MoveFile(file_path, metadata);
+      MoveFile(entry.path().stem().string(), file_path, assort_root_, metadata);
     }
   }
   LOG(INFO) << "Completed relocating from " << staging_location;
