@@ -29,13 +29,13 @@ constexpr absl::string_view kModuleExif = "exif";
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
-  absl::SetGlobalVLogLevel(1);
+  // absl::SetGlobalVLogLevel(1);
   absl::SetVLogLevel(kModuleExif, 1);
-  std::unique_ptr<FsNAS> fs_nas = std::make_unique<FsNAS>();
   std::unique_ptr<Assorter> assorter = std::make_unique<Assorter>();
+  std::unique_ptr<FsNAS> fs_nas = std::make_unique<FsNAS>();
   TaskExecutor executor;
-  // executor.Append(std::move(fs_nas));
   executor.Append(std::move(assorter));
+  executor.Append(std::move(fs_nas));
   executor.Start();
   // Exif exif;
   // auto json_metadata = exif.Read(

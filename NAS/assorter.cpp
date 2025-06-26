@@ -82,7 +82,7 @@ void Assorter::Do() {
 void Assorter::RelocateStaging(absl::string_view staging_location) {
   LOG(INFO) << "Relocating staged files from " << staging_location;
   for (const auto& entry : fs::recursive_directory_iterator(staging_location)) {
-    LOG(INFO) << entry.path().string();
+    VLOG(1) << entry.path().string();
     if (fs::is_regular_file(entry)) {
       std::string file_path = entry.path().string();
       json json_meta = exif_.Read(file_path);
