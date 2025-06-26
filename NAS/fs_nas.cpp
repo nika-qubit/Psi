@@ -156,10 +156,10 @@ std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::strin
     }
   }
   for (const auto& event: events) {
-    for (const auto& entry: fs::directory_iterator(event)) {
+    for (const auto& entry: fs::recursive_directory_iterator(event)) {
       if (fs::is_regular_file(entry)) {
         std::string filename = entry.path().filename().string();
-        LOG(INFO) << "Seen " << filename << " at " << entry.path();
+        VLOG(1) << "Seen " << filename << " at " << entry.path();
         if (!seen.insert(filename).second) {
           MovedFile moved = {filename, entry.path().string(), seen_map[filename]};
           LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];
@@ -175,7 +175,7 @@ std::vector<std::string> FsNAS::CompactMonth(absl::string_view month, std::strin
   for (const auto& entry : fs::directory_iterator(month)) {
     if (fs::is_regular_file(entry)) {  // plain files
       std::string filename = entry.path().filename().string();
-      LOG(INFO) << "Seen " << filename << " at " << entry.path();
+      VLOG(1) << "Seen " << filename << " at " << entry.path();
       if (!seen.insert(filename).second) {
         MovedFile moved = {filename, entry.path().string(), seen_map[filename]};
         LOG(WARNING) << "Duplicated " << filename << " at " << entry.path() << ", first seen in " << seen_map[filename];

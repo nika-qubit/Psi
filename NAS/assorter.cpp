@@ -87,7 +87,7 @@ void Assorter::RelocateStaging(absl::string_view staging_location) {
       std::string file_path = entry.path().string();
       json json_meta = exif_.Read(file_path);
       const Metadata metadata = exif_.Distill(json_meta);
-      MoveFile(entry.path().stem().string(), file_path, assort_root_, metadata);
+      MoveFile(entry.path().filename().string(), file_path, assort_root_, metadata);
     }
   }
   LOG(INFO) << "Completed relocating from " << staging_location;
