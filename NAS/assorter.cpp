@@ -27,11 +27,11 @@ void MoveFile(absl::string_view filename, absl::string_view file_path, absl::str
   if (!metadata.is_comprehensive) return;
   std::string dest = absl::StrCat(assort_root, "/", metadata.year, "/", metadata.month, "/", filename);
   VLOG(1) << "Moving staging file: " << file_path << " to: " << dest;
-  // try {
-  //   fs::rename(file_path, dest);
-  // } catch (fs::filesystem_error const& ex) {
-  //   LOG(ERROR) << "Failed to move staging file: " << file_path << "to: " << dest;
-  // }
+  try {
+    fs::rename(file_path, dest);
+  } catch (fs::filesystem_error const& ex) {
+    LOG(ERROR) << "Failed to move staging file: " << file_path << "to: " << dest;
+  }
 }
 
 // Utility to check file type.
