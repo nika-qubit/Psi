@@ -42,3 +42,12 @@ add_custom_target(PreInstallExiv2
 add_custom_target(ExportExifHeader
   ALL DEPENDS PreInstallExiv2
 )
+
+# FFmpeg setup for Linux.
+# sudo apt install --yes libavformat-dev libavcodec-dev libavutil-dev libswscale-dev
+# Use pkg-config to find FFmpeg
+find_package(PkgConfig REQUIRED)
+# Find individual FFmpeg components
+pkg_check_modules(AVFORMAT REQUIRED libavformat)
+pkg_check_modules(AVCODEC REQUIRED libavcodec)
+pkg_check_modules(AVUTIL REQUIRED libavutil)

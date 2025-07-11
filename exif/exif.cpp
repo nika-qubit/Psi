@@ -14,6 +14,10 @@
 #include <exiv2/exiv2.hpp>
 #include <nlohmann/json.hpp>
 
+extern "C" {
+#include <libavformat/avformat.h>
+}
+
 namespace nika::nas {
 
 namespace {
@@ -103,6 +107,10 @@ json Exif::Read(absl::string_view file) const {
     }
   } catch (const Exiv2::Error& ex) {
     LOG(ERROR) << absl::Substitute("Failed to read EXIF data from file $0, error: $1.", file, ex.what());
+    AVFormatContext* fmt_ctx = nullptr;
+    if (avformat_open_input(&fmt_ctx, file.data(), nullptr, nullptr) < 0) {
+      LOG(ERROR) << absl::StrCat("Failed to open source file with avformat ", file);
+    }
   }
   return exif_data;
 }
