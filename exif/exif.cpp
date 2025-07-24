@@ -16,6 +16,7 @@
 
 extern "C" {
 #include <libavformat/avformat.h>
+#include <libavutil/dict.h>
 }
 
 namespace nika::nas {
@@ -106,11 +107,23 @@ json Exif::Read(absl::string_view file) const {
         exif_data[i->key()] = oss.str();
     }
   } catch (const Exiv2::Error& ex) {
-    LOG(ERROR) << absl::Substitute("Failed to read EXIF data from file $0, error: $1.", file, ex.what());
+    LOG(ERROR) << absl::Substitute("Failed to read EXIF data from file $0, error: $1. Trying to parse it with FFmpeg instead.", file, ex.what());
     AVFormatContext* fmt_ctx = nullptr;
     if (avformat_open_input(&fmt_ctx, file.data(), nullptr, nullptr) < 0) {
-      LOG(ERROR) << absl::StrCat("Failed to open source file with avformat ", file);
+      LOG(ERROR) << "Failed to open source file with avformat: " << file;
     }
+    if (avformat_find_stream_info(fmt_ctx, nullptr) < 0) {
+      LOG(ERROR) << "Could not find stream info: " << file;
+    }
+    AVDictionaryEntry* tag = av_dict_get(fmt_ctx->metadata, "creation_time", nullptr, 0);
+    if (tag) {
+        LOG(INFO) << "Creation Time: " << tag->value << "\n";
+    } else {
+        LOG(WARNING) << "Creation time not found in metadata for file: " << file;
+    }
+    // TODO: parse the value into date time and offset.
+    exif_data[kDateTimeOriginal] = tag->value;
+    avformat_close_input(&fmt_ctx);
   }
   return exif_data;
 }
