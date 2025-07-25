@@ -29,6 +29,7 @@ constexpr absl::string_view kModuleExif = "exif";
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverityAtLeast::kInfo);
+  // absl::SetStderrThreshold(absl::LogSeverityAtLeast::kWarning);
   // absl::SetGlobalVLogLevel(1);
   absl::SetVLogLevel(kModuleExif, 1);
   std::unique_ptr<Assorter> assorter = std::make_unique<Assorter>();
