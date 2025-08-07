@@ -113,20 +113,22 @@ json Exif::Read(absl::string_view file) const {
   AVFormatContext* fmt_ctx = nullptr;
   if (avformat_open_input(&fmt_ctx, file.data(), nullptr, nullptr) < 0) {
     LOG(ERROR) << "Failed to open source file with avformat: " << file;
+    return exif_data;
   }
   if (avformat_find_stream_info(fmt_ctx, nullptr) < 0) {
     LOG(ERROR) << "Could not find stream info: " << file;
+    return exif_data;
   }
   AVDictionaryEntry* tag = av_dict_get(fmt_ctx->metadata, "creation_time", nullptr, 0);
   if (tag) {
       LOG(INFO) << "Creation Time: " << tag->value << "\n";
+      std::string creation_time = tag->value;
+      // Only take the first 19 characters as they usually conform to
+      // YYYY-mm-ddTHH:MM:SS.
+      exif_data[kDateTimeOriginal] = creation_time.substr(0, 19);
   } else {
       LOG(WARNING) << "Creation time not found in metadata for file: " << file;
   }
-  std::string creation_time = tag->value;
-  // Only take the first 19 characters as they usually conform to
-  // YYYY-mm-ddTHH:MM:SS.
-  exif_data[kDateTimeOriginal] = creation_time.substr(0, 19);
   avformat_close_input(&fmt_ctx);
   return exif_data;
 }
